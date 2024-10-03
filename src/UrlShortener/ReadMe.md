@@ -258,3 +258,20 @@
 
    You will be redirected to `https://www.microsoft.com`.
 
+# 5. Add Orleans Dashboard
+
+1. Add the library **OrleansDashboard** to the project.
+   - Right-click on the project and select **Manage NuGet Packages**.
+   - Search for **OrleansDashboard** and install the latest version.
+
+2. Inject the **Orleans Dashboard** services in `Program.cs` file:
+
+   ```csharp
+   builder.Host.UseOrleans(siloBuilder =>
+   {
+       siloBuilder.UseLocalhostClustering();
+       siloBuilder.UseDashboard();
+       });
+   ```
+
+3. Run the application and navigate to `http://localhost:8080/` to display the **Orleans Dashboard**.

@@ -24,6 +24,7 @@ namespace UrlShortener
             builder.Host.UseOrleans(siloBuilder =>
             {
                 siloBuilder.UseLocalhostClustering();
+                siloBuilder.UseDashboard();
             });
 
             var app = builder.Build();
