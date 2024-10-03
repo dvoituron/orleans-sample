@@ -1,3 +1,4 @@
+using Microsoft.FluentUI.AspNetCore.Components;
 using UrlShortener.Components;
 
 namespace UrlShortener
@@ -11,6 +12,10 @@ namespace UrlShortener
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            // Add FluentUI Blazor services
+            builder.Services.AddFluentUIComponents();
+            builder.Services.AddHttpClient();
 
             var app = builder.Build();
 
