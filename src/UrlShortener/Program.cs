@@ -11,11 +11,14 @@ namespace UrlShortener
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+                            .AddInteractiveServerComponents();
 
             // Add FluentUI Blazor services
             builder.Services.AddFluentUIComponents();
             builder.Services.AddHttpClient();
+
+            // Add Controllers
+            builder.Services.AddControllers();
 
             var app = builder.Build();
 
@@ -32,8 +35,10 @@ namespace UrlShortener
             app.UseStaticFiles();
             app.UseAntiforgery();
 
+            app.MapControllers();
+
             app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+               .AddInteractiveServerRenderMode();
 
             app.Run();
         }
