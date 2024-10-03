@@ -3,6 +3,13 @@
 [ApiController]
 public class ShortUrlController : Controller
 {
+    private IGrainFactory _grains;
+
+    public ShortUrlController(IGrainFactory grains)
+    {
+        _grains = grains;
+    }
+
     [HttpGet()]
     [Route("shorten")]
     public async Task<IResult> GetShortenAsync([FromQuery] string url)
@@ -17,8 +24,11 @@ public class ShortUrlController : Controller
         }
 
         // Create a unique, short ID
-        var shortenedRouteSegment = $"TODO";
-        await Task.CompletedTask;
+        var shortenedRouteSegment = UrlDetails.NewShortUrl;
+
+        // Create and persist a grain with the shortened ID and full URL
+        var shortenerGrain = _grains.GetGrain<IUrlShortenerGrain>(shortenedRouteSegment);
+        await shortenerGrain.SetUrl(url);
 
         // Return the shortened URL for later use
         var resultBuilder = new UriBuilder(host)

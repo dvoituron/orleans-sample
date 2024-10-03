@@ -129,3 +129,105 @@
    app.MapControllers();
    ```
 
+4. Run the application and test the API by navigating 
+   to `https://localhost:7288/shorten?url=https://www.microsoft.com`.
+   You will receive an new shortened URL like `https://localhost:7288/go/TODO`.
+
+# 3. Create the first Grain.
+
+1. Add the library **Microsoft.Orleans.Server** to the project.
+   - Right-click on the project and select **Manage NuGet Packages**.
+   - Search for **Microsoft.Orleans.Server** and install the latest version.
+
+2. Inject the **Orleans** services in `Program.cs` file:
+
+   ```csharp
+   // Add Orleans services
+   builder.Host.UseOrleans(siloBuilder =>
+   {
+       siloBuilder.UseLocalhostClustering();
+   });
+   ```
+
+3. Create a new folder named **Models** in the project
+
+4. Add this interface in the `IUrlShortenerGrain.cs` file:
+
+   ```csharp
+   public interface IUrlShortenerGrain : IGrainWithStringKey
+   {
+       Task SetUrl(string value);
+   
+       Task<string> GetUrl();
+   }
+   ```
+
+   > We are using the `IGrainWithStringKey` interface to define the primary key of the grain,
+   > as a string representing the shortened URL.
+
+5. Add this class in the `UrlShortenerGrain.cs` file:
+   ```csharp
+   public record class UrlDetails
+   {
+       public required string FullUrl { get; set; }
+       
+       public required string ShortenedRouteSegment { get; set; }
+   
+       public static UrlDetails Empty => new UrlDetails
+       {
+           FullUrl = string.Empty,
+           ShortenedRouteSegment = string.Empty
+       };
+
+	   public static string NewShortUrl => Guid.NewGuid().GetHashCode().ToString("X");
+   }
+
+   public class UrlShortenerGrain : Grain, IUrlShortenerGrain
+   {
+       private UrlDetails _urlDetails = UrlDetails.Empty;
+   
+       public Task SetUrl(string value)
+       {
+           _urlDetails = new UrlDetails
+           {
+               FullUrl = value,
+               ShortenedRouteSegment = this.GetPrimaryKeyString(),
+           };
+   
+           return Task.CompletedTask;
+       }
+   
+       public Task<string> GetUrl()
+       {
+           return Task.FromResult(_urlDetails.FullUrl);
+       }
+   }
+   ```
+
+6. Add this constructor to the `ShortUrlController` to have a reference to the **GrainFactory**:
+
+   ```csharp
+   private IGrainFactory _grains;
+
+   public ShortUrlController(IGrainFactory grains)
+   {
+       _grains = grains;
+   }
+   ```
+
+7. Update the `GetShortenAsync` method to use the **Grain**:
+   ```csharp
+   // Create a unique, short ID
+   var shortenedRouteSegment = UrlDetails.NewShortUrl;
+
+   // Create and persist a grain with the shortened ID and full URL
+   var shortenerGrain = _grains.GetGrain<IUrlShortenerGrain>(shortenedRouteSegment);
+   await shortenerGrain.SetUrl(url);
+   ```
+
+8. Run the application and test the API by navigating 
+   to `https://localhost:7288/shorten?url=https://www.microsoft.com`.
+   You will receive an new shortened URL like `https://localhost:7288/go/67C2BC0F`.
+
+   > You can use the `Samples.http` file to test the API with Visual Studio.
+

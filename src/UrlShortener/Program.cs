@@ -20,6 +20,12 @@ namespace UrlShortener
             // Add Controllers
             builder.Services.AddControllers();
 
+            // Add Orleans services
+            builder.Host.UseOrleans(siloBuilder =>
+            {
+                siloBuilder.UseLocalhostClustering();
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

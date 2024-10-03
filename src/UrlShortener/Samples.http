@@ -1,0 +1,7 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+
+###
+GET https://localhost:7288/shorten?url=https://www.microsoft.com
+
+### 
+GET https://localhost:7288/shorten?url=https://dvoituron.com
