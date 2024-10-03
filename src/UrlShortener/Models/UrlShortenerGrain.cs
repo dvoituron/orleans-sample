@@ -2,7 +2,7 @@
 {
     private UrlDetails _urlDetails = UrlDetails.Empty;
 
-    public Task SetUrl(string value)
+    public async Task SetUrl(string value)
     {
         _urlDetails = new UrlDetails
         {
@@ -10,7 +10,10 @@
             ShortenedRouteSegment = this.GetPrimaryKeyString(),
         };
 
-        return Task.CompletedTask;
+        // await Task.Delay(1000);  // Simulate a delay in setting the URL.
+        // DeactivateOnIdle();
+
+        await Task.CompletedTask;
     }
 
     public Task<string> GetUrl()

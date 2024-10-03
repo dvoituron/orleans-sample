@@ -275,3 +275,29 @@
    ```
 
 3. Run the application and navigate to `http://localhost:8080/` to display the **Orleans Dashboard**.
+
+# 6. Manage the Grain TTL
+
+1. Update the `Program.cs` using this code:
+   ```csharp
+   // Set DeactivationTimeout to 1 minute
+   siloBuilder.Configure<GrainCollectionOptions>(options =>
+   {
+       options.CollectionQuantum = TimeSpan.FromSeconds(1);    // Garbage Collector Ticks
+       options.CollectionAge = TimeSpan.FromSeconds(5);        // Time to wait before deactivating a Grain
+   });
+   ```
+
+2. Run the application and test the API by navigating 
+   to `https://localhost:7288/shorten?url=https://www.microsoft.com`
+   
+3. Navigate to http://localhost:8080/ and check the **Grains** tab.
+   After 5 seconds, the grain will be deactivated.
+
+   > By default a Grain is deactivated after 2 hours of idle.
+
+4. You could also deactivate a grain manually by calling the `DeactivateOnIdle` method,
+   in the `UrlShortenerGrain.SetUrl(string value)` method:
+   ```csharp
+   DeactivateOnIdle();
+   ```

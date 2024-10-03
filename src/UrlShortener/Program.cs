@@ -1,4 +1,5 @@
 using Microsoft.FluentUI.AspNetCore.Components;
+using Orleans.Configuration;
 using UrlShortener.Components;
 
 namespace UrlShortener
@@ -25,6 +26,13 @@ namespace UrlShortener
             {
                 siloBuilder.UseLocalhostClustering();
                 siloBuilder.UseDashboard();
+
+                // Set DeactivationTimeout to 1 minute
+                siloBuilder.Configure<GrainCollectionOptions>(options =>
+                {
+                    options.CollectionQuantum = TimeSpan.FromSeconds(1);    // Garbage Collector Ticks
+                    options.CollectionAge = TimeSpan.FromSeconds(5);        // Time to wait before deactivating a Grain
+                });
             });
 
             var app = builder.Build();
