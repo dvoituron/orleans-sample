@@ -231,3 +231,30 @@
 
    > You can use the `Samples.http` file to test the API with Visual Studio.
 
+# 4. Add the GoToUrl controller
+
+1. Update the controller adding the `GoToUrl` method:
+
+   ```csharp
+   [HttpGet()]
+   [Route("go/{shortenedUrl}")]
+   public async Task<IResult> GoToUrl(string shortenedUrl)
+   {
+       // Retrieve the grain using the shortened ID and url to the original URL
+       var shortenerGrain = _grains.GetGrain<IUrlShortenerGrain>(shortenedUrl);
+
+       var url = await shortenerGrain.GetUrl();
+
+       // Handles missing schemes, defaults to "http://".
+       var redirectBuilder = new UriBuilder(url);
+
+       return Results.Redirect(redirectBuilder.Uri.ToString());
+   }
+   ```
+
+2. Run the application and test the API by navigating 
+   to `https://localhost:7288/shorten?url=https://www.microsoft.com`
+   and next to the URL returned by the API.
+
+   You will be redirected to `https://www.microsoft.com`.
+

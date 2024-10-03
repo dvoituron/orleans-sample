@@ -38,4 +38,19 @@ public class ShortUrlController : Controller
 
         return Results.Ok(resultBuilder.Uri);
     }
+
+    [HttpGet()]
+    [Route("go/{shortenedUrl}")]
+    public async Task<IResult> GoToUrl(string shortenedUrl)
+    {
+        // Retrieve the grain using the shortened ID and url to the original URL
+        var shortenerGrain = _grains.GetGrain<IUrlShortenerGrain>(shortenedUrl);
+
+        var url = await shortenerGrain.GetUrl();
+
+        // Handles missing schemes, defaults to "http://".
+        var redirectBuilder = new UriBuilder(url);
+
+        return Results.Redirect(redirectBuilder.Uri.ToString());
+    }
 }
