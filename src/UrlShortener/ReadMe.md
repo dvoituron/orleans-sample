@@ -276,7 +276,7 @@
 
 3. Run the application and navigate to `http://localhost:8080/` to display the **Orleans Dashboard**.
 
-# 6. Manage the Grain TTL
+# 6. Manage the Grain Timeout
 
 1. Update the `Program.cs` using this code:
    ```csharp
@@ -301,3 +301,72 @@
    ```csharp
    DeactivateOnIdle();
    ```
+
+# 7. Add Persistence to the Grain
+
+1. We will use the Azure Blob Storage to persist the grain state. You nedd to install the following tools:
+   - [Azurite Storage Emulator](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite) to emulate the Azure Blob Storage.
+   - [Azure Storage Explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer/) to manage and read the Azure Blob Storage.
+
+   > Azurite is automatically available with Visual Studio 2022. 
+   > If you're running an earlier version of Visual Studio, you can install Azurite by using either 
+   > Node Package Manager (npm), DockerHub, or by cloning the Azurite GitHub repository.
+   > Navigate to the appropriate location and start `azurite.exe`. 
+   > After you run the executable file, **Azurite** listens for connections.
+
+   Once installed, launch the Azurite emulator with the following command:
+   ```shell
+   "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\Extensions\Microsoft\Azure Storage Emulator\Azurite.exe" --location .\Azurite-Data
+   ```
+
+   > The `--location` parameter specifies the location of the data files.
+
+2. Add the library **Microsoft.Orleans.Persistence.AzureStorage** to the project.
+
+3. Update the `Program.cs` file to inject the **Azure Blob Storage** services:
+   ```csharp
+   public const string ORLEANS_STORAGE_NAME = "urls";
+   ```
+   ```csharp
+   siloBuilder.AddMemoryGrainStorage(ORLEANS_STORAGE_NAME);
+
+   siloBuilder.AddAzureBlobGrainStorage(
+       name: ORLEANS_STORAGE_NAME,   // Orleans Storage Name
+       options =>
+       { 
+           options.ContainerName = "urls";     // Azure Blob Container Name
+           options.BlobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
+       });
+   ```
+
+4. Update the `UrlShortenerGrain` to add this constructor:
+
+   ```csharp
+   private readonly IPersistentState<UrlDetails> _urlDetails;
+
+   public UrlShortenerGrain(
+       [PersistentState(stateName: "url", storageName: Program.ORLEANS_STORAGE_NAME)] IPersistentState<UrlDetails> urlDetails)
+   {
+       _urlDetails = urlDetails;
+   }
+   ```
+
+   Replace `_urlDetails` by `_urlDetails.State` in the `SetUrl` and `GetUrl` methods.
+
+   Add this line in the `SetUrl` method to persist the grain state:
+   ```csharp
+   await _urlDetails.WriteStateAsync();
+   ```
+
+5. Grain type names
+
+   Orleans creates a grain type name for you based on your grain implementation class by removing the suffix "Grain" 
+   from the class name, if it's present, and converting the resulting string into its lower-case representation. 
+   For example, a class named `ShoppingCartGrain` will be given the grain type name `shoppingcart`.
+
+   You can override the default grain type name by using the `[GrainType]` attribute:
+   ```csharp
+   [GrainType("shortener")]
+   ```
+
+   This grain type name is used to generate the Azure Blob Storage key: `{State_Name}-{Grain_Type_Name}`.

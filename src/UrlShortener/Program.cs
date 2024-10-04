@@ -1,3 +1,4 @@
+using Azure.Storage.Blobs;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Orleans.Configuration;
 using UrlShortener.Components;
@@ -6,6 +7,8 @@ namespace UrlShortener
 {
     public class Program
     {
+        public const string ORLEANS_STORAGE_NAME = "urls";
+
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +29,16 @@ namespace UrlShortener
             {
                 siloBuilder.UseLocalhostClustering();
                 siloBuilder.UseDashboard();
+
+                // Add Grain Storage
+                siloBuilder.AddMemoryGrainStorage(ORLEANS_STORAGE_NAME);
+                siloBuilder.AddAzureBlobGrainStorage(
+                    name: ORLEANS_STORAGE_NAME,   // Orleans Storage Name
+                    options =>
+                    {
+                        options.ContainerName = "urls";     // Azure Blob Container Name
+                        options.BlobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
+                    });
 
                 // Set DeactivationTimeout to 1 minute
                 siloBuilder.Configure<GrainCollectionOptions>(options =>

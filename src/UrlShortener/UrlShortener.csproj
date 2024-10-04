@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.10.1" />
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.10.1" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="8.2.0" />
+    <PackageReference Include="Microsoft.Orleans.Persistence.AzureStorage" Version="8.2.0" />
     <PackageReference Include="OrleansDashboard" Version="8.2.0" />
   </ItemGroup>
 
