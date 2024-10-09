@@ -8,6 +8,8 @@ namespace UrlShortener
     public class Program
     {
         public const string ORLEANS_STORAGE_NAME = "urls";
+        public const string ORLEANS_STREAM_PROVIDER = "StreamProvider";
+        public const string ORLEANS_STREAM_URL = "GeneratedUrl";
 
         public static void Main(string[] args)
         {
@@ -40,12 +42,20 @@ namespace UrlShortener
                         options.BlobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
                     });
 
+                // Add Observer Streams
+                siloBuilder.AddMemoryStreams(ORLEANS_STREAM_PROVIDER);           // NOT RECOMMANDED IN PRODUCTION
+                siloBuilder.AddMemoryGrainStorage("PubSubStore");                // Or Orleans.Providers.ProviderConstants.DEFAULT_PUBSUB_PROVIDER_NAME
+                                                                                 // Or ORLEANS_STREAM_PROVIDER
+
                 // Set DeactivationTimeout to 1 minute
+                /*
                 siloBuilder.Configure<GrainCollectionOptions>(options =>
                 {
                     options.CollectionQuantum = TimeSpan.FromSeconds(1);    // Garbage Collector Ticks
                     options.CollectionAge = TimeSpan.FromSeconds(5);        // Time to wait before deactivating a Grain
                 });
+                */
+
             });
 
             var app = builder.Build();

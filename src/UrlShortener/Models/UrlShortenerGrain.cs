@@ -1,4 +1,5 @@
-﻿using UrlShortener;
+﻿using Orleans.Streams;
+using UrlShortener;
 
 [GrainType("shortener")]
 public class UrlShortenerGrain : Grain, IUrlShortenerGrain
@@ -23,6 +24,11 @@ public class UrlShortenerGrain : Grain, IUrlShortenerGrain
         // DeactivateOnIdle();
 
         await _urlDetails.WriteStateAsync();
+
+        // Send a message on the Stream "GeneratedUrl"
+        var streamProvider = this.GetStreamProvider(Program.ORLEANS_STREAM_PROVIDER);
+        var stream = streamProvider.GetStream<StreamItem>(Program.ORLEANS_STREAM_URL);
+        await stream.OnNextAsync(new StreamItem() { FullUrl = value });
 
         await Task.CompletedTask;
     }
