@@ -27,7 +27,7 @@ namespace UrlShortener
             // Add Controllers
             builder.Services.AddControllers();
 
-            bool USE_AZURE = true;
+            bool USE_AZURE = false;
 
             // Add Orleans services
             builder.Host.UseOrleans(siloBuilder =>
