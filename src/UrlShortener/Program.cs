@@ -26,6 +26,8 @@ namespace UrlShortener
             // Add Controllers
             builder.Services.AddControllers();
 
+            bool USE_AZURE = true;
+
             // Add Orleans services
             builder.Host.UseOrleans(siloBuilder =>
             {
@@ -33,19 +35,37 @@ namespace UrlShortener
                 siloBuilder.UseDashboard();
 
                 // Add Grain Storage
-                siloBuilder.AddMemoryGrainStorage(ORLEANS_STORAGE_NAME);
-                siloBuilder.AddAzureBlobGrainStorage(
-                    name: ORLEANS_STORAGE_NAME,   // Orleans Storage Name
-                    options =>
-                    {
-                        options.ContainerName = "urls";     // Azure Blob Container Name
-                        options.BlobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
-                    });
+                if (!USE_AZURE)
+                {
+                    siloBuilder.AddMemoryGrainStorage(ORLEANS_STORAGE_NAME);
+                }
+                else
+                {
+                    siloBuilder.AddAzureBlobGrainStorage(
+                        name: ORLEANS_STORAGE_NAME,   // Orleans Storage Name
+                        options =>
+                        {
+                            options.ContainerName = "urls";     // Azure Blob Container Name
+                            options.BlobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
+                        });
+                }
 
                 // Add Observer Streams
-                siloBuilder.AddMemoryStreams(ORLEANS_STREAM_PROVIDER);           // NOT RECOMMANDED IN PRODUCTION
-                siloBuilder.AddMemoryGrainStorage("PubSubStore");                // Or Orleans.Providers.ProviderConstants.DEFAULT_PUBSUB_PROVIDER_NAME
-                                                                                 // Or ORLEANS_STREAM_PROVIDER
+                if (!USE_AZURE)
+                {
+                    siloBuilder.AddMemoryStreams(ORLEANS_STREAM_PROVIDER);           // NOT RECOMMANDED IN PRODUCTION
+                    siloBuilder.AddMemoryGrainStorage("PubSubStore");                // Or Orleans.Providers.ProviderConstants.DEFAULT_PUBSUB_PROVIDER_NAME
+                                                                                     // Or ORLEANS_STREAM_PROVIDER
+                }   
+                else
+                {
+                    siloBuilder.AddMemoryStreams(ORLEANS_STREAM_PROVIDER);           // NOT RECOMMANDED IN PRODUCTION
+                    siloBuilder.AddAzureBlobGrainStorage("PubSubStore", options =>
+                    {
+                        options.BlobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
+                        options.ContainerName = "pubsubstore"; // Name of the container in Azure Storage
+                    });
+                }
 
                 // Set DeactivationTimeout to 1 minute
                 /*
