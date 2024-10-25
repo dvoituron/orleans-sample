@@ -1,4 +1,5 @@
 using Azure.Storage.Blobs;
+using Azure.Storage.Queues;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Orleans.Configuration;
 using UrlShortener.Components;
@@ -56,14 +57,25 @@ namespace UrlShortener
                     siloBuilder.AddMemoryStreams(ORLEANS_STREAM_PROVIDER);           // NOT RECOMMANDED IN PRODUCTION
                     siloBuilder.AddMemoryGrainStorage("PubSubStore");                // Or Orleans.Providers.ProviderConstants.DEFAULT_PUBSUB_PROVIDER_NAME
                                                                                      // Or ORLEANS_STREAM_PROVIDER
-                }   
+                }
                 else
                 {
-                    siloBuilder.AddMemoryStreams(ORLEANS_STREAM_PROVIDER);           // NOT RECOMMANDED IN PRODUCTION
+
+                    siloBuilder.AddAzureQueueStreams(ORLEANS_STREAM_PROVIDER,
+                        (SiloAzureQueueStreamConfigurator configurator) =>
+                      {
+                          configurator.ConfigureAzureQueue(
+                             ob => ob.Configure(options =>
+                             {
+                                 options.QueueServiceClient = new QueueServiceClient("UseDevelopmentStorage=true");
+                             }));
+                          configurator.ConfigureStreamPubSub();
+                      });
+
                     siloBuilder.AddAzureBlobGrainStorage("PubSubStore", options =>
                     {
-                        options.BlobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
                         options.ContainerName = "pubsubstore"; // Name of the container in Azure Storage
+                        options.BlobServiceClient = new BlobServiceClient("UseDevelopmentStorage=true");
                     });
                 }
 
